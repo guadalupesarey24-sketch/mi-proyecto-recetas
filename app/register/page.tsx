@@ -16,22 +16,39 @@ export default function RegisterPage() {
     e.preventDefault();
     setMsg('Procesando registro...');
     
+    // 1. Crear el usuario en el sistema de autenticación
     const { data, error } = await supabase.auth.signUp({ email, password });
     
-    if (error) {
-      setMsg(` Error: ${error.message}`);
+      if (error) {
+      // Traducir errores comunes de autenticación
+      if (error.message.includes('User already registered')) {
+        setMsg(' Error: El correo electrónico ya está registrado.');
+      } else if (error.message.includes('Password should be')) {
+        setMsg(' Error: La contraseña debe tener al menos 6 caracteres.');
+      } else if (error.message.includes('email rate limit exceeded')) {
+        setMsg(' Límite excedido: Has realizado demasiados intentos seguidos. Por favor, espera unos minutos antes de intentar registrar otra cuenta.');
+      } else {
+        setMsg(` Error: ${error.message}`);
+      }
       return;
     }
 
+
     if (data.user) {
+      // 2. Insertar los datos en la tabla 'profiles'
       const { error: profileError } = await supabase
         .from('profiles')
         .insert([{ id: data.user.id, nombre, rol }]);
 
       if (profileError) {
-        setMsg(` Error en perfil: ${profileError.message}`);
+        // Capturar y traducir el error de políticas de seguridad (RLS)
+        if (profileError.message.includes('row-level security policy')) {
+          setMsg(' Error de permisos: No se pudo crear el perfil debido a las políticas de seguridad de la base de datos.');
+        } else {
+          setMsg(` Error en perfil: ${profileError.message}`);
+        }
       } else {
-        setMsg('¡ Registro exitoso! Redirigiendo...');
+        setMsg('¡ Registro exitoso! Redirigiendo al inicio de sesión...');
         setTimeout(() => router.push('/login'), 2000);
       }
     }
