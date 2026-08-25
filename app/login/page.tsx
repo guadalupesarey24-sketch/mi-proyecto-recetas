@@ -2,30 +2,41 @@
 
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [msg, setMsg] = useState('');
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
+    
     e.preventDefault();
-    setMsg('Iniciando sesión...');
+    if (loading) return;
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(true);
+    setMsg('Iniciando sesión de forma segura...');
 
-    if (error) {
-      setMsg(`❌ Error: ${error.message}`);
-    } else {
-      setMsg('¡✅ Ingreso correcto! Redirigiendo panel...');
+    try {
       
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 500);
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) {
+        setMsg(`Error: ${error.message}`);
+        setLoading(false);
+        return;
+      }
+
+      setMsg('¡Ingreso correcto! Redirigiendo al panel...');
+      
+      
+      window.location.href = '/dashboard';
+
+    } catch (err: any) {
+      setMsg('Ocurrió un error inesperado al intentar ingresar.');
+      setLoading(false);
     }
-  }; // ← Aquí cerramos correctamente la función handleLogin
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
@@ -38,9 +49,10 @@ export default function LoginPage() {
           <input 
             type="email" 
             required 
+            disabled={loading}
             value={email} 
             onChange={(e) => setEmail(e.target.value)} 
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-orange-500 outline-none" 
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-orange-500 outline-none disabled:bg-gray-100" 
           />
         </div>
         <div className="mb-6">
@@ -48,15 +60,21 @@ export default function LoginPage() {
           <input 
             type="password" 
             required 
+            disabled={loading}
             value={password} 
             onChange={(e) => setPassword(e.target.value)} 
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-orange-500 outline-none" 
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-800 focus:ring-2 focus:ring-orange-500 outline-none disabled:bg-gray-100" 
           />
         </div>
-        <button type="submit" className="w-full py-2.5 bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-lg transition shadow-sm">
-          Ingresar
+        <button 
+          type="submit" 
+          disabled={loading}
+          className="w-full py-2.5 bg-gray-800 hover:bg-gray-900 text-white font-medium rounded-lg transition shadow-sm disabled:bg-gray-400"
+        >
+          {loading ? 'Procesando...' : 'Ingresar'}
         </button>
       </form>
     </div>
   );
 }
+
