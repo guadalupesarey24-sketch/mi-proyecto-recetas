@@ -13,13 +13,15 @@ interface Recipe {
 }
 
 //  1. DICCIONARIO DE IMÁGENES REALES SEGÚN TUS CATEGORÍAS DE SUPABASE
+// 🚀 DICCIONARIO DE AVATARES REALES DE ALTA CALIDAD (Usa enlaces directos de imágenes de Unsplash)
 const IMAGENES_POR_CATEGORIA: Record<string, string> = {
   Bebidas: 'https://unsplash.com',
   Postres: 'https://unsplash.com',
   Entradas: 'https://unsplash.com',
   Almuerzo: 'https://unsplash.com',
-  Tradicional: 'https://unsplash.com' // Imagen de respaldo global
+  Tradicional: 'https://unsplash.com' // Imagen global si falla todo
 };
+
 
 export default function RecetasPage() {
   const [tab, setTab] = useState<'comunidad' | 'externa'>('comunidad');
@@ -35,17 +37,21 @@ export default function RecetasPage() {
       setErrorMsg('');
       
       // 1. CARGAR DATOS DE SUPABASE 
+           // 1. CARGAR DATOS DE SUPABASE 
       try {
         const { data, error } = await supabase.from('recetas').select('*');
         if (error) throw error;
         
         const mapeadas = (data || []).map((r: any) => {
-          // Detectamos la categoría que guardaste en la base de datos
+          // Extraemos y limpiamos la categoría que guardaste
           const categoriaDefinida = r.cuisine || r.categoria || 'Tradicional';
           
+          // 🚀 COMPROBACIÓN REFORZADA: 
+          // Si r.image no existe, es un texto vacío "", o es el link viejo de unsplash genérico, se considera INVÁLIDO.
+          const tieneImagenReal = r.image && r.image.trim() !== '' && !r.image.includes('://unsplash.com');
           
-          const tieneImagenValida = r.image && r.image.trim() !== '' && !r.image.includes('://unsplash.com');
-          const imagenFinal = tieneImagenValida 
+          // Si no tiene una imagen válida subida por el usuario, le inyectamos a la fuerza el avatar según su categoría
+          const imagenFinal = tieneImagenReal 
             ? r.image 
             : (IMAGENES_POR_CATEGORIA[categoriaDefinida] || IMAGENES_POR_CATEGORIA['Tradicional']);
 
@@ -61,6 +67,7 @@ export default function RecetasPage() {
       } catch (err) {
         console.error("Error cargando Supabase:", err);
       }
+
 
       // 2. CONSUMO DE API EXTERNA 
       try {
@@ -145,12 +152,13 @@ export default function RecetasPage() {
                 <img 
                   src={receta.image} 
                   alt={receta.name} 
-                  className="w-full h-48 object-cover"
+                  className="w-full h-48 object-cover rounded-t-xl bg-gray-100"
                   onError={(e) => {
-                    // Si una imagen guardada se cae en el futuro, inyecta la de respaldo global
-                    (e.target as HTMLImageElement).src = 'https://images.://unsplash.comphoto-1495521821757-a1efb6729352?w=500';
+                  // Si por algún motivo la URL resultante llegara a fallar, este salvavidas inyecta una foto gastronómica estable
+                    (e.target as HTMLImageElement).src = 'https://unsplash.com';
                   }}
                 />
+
                 <div className="p-4">
                   <span className="text-xs font-semibold px-2 py-1 bg-orange-100 text-orange-600 rounded-full">
                     {receta.cuisine}
