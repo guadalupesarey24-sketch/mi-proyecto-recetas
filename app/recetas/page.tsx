@@ -12,6 +12,15 @@ interface Recipe {
   isExternal?: boolean; // Para diferenciar el origen
 }
 
+//  1. DICCIONARIO DE IMÁGENES REALES SEGÚN TUS CATEGORÍAS DE SUPABASE
+const IMAGENES_POR_CATEGORIA: Record<string, string> = {
+  Bebidas: 'https://unsplash.com',
+  Postres: 'https://unsplash.com',
+  Entradas: 'https://unsplash.com',
+  Almuerzo: 'https://unsplash.com',
+  Tradicional: 'https://unsplash.com' // Imagen de respaldo global
+};
+
 export default function RecetasPage() {
   const [tab, setTab] = useState<'comunidad' | 'externa'>('comunidad');
   const [recetasSupabase, setRecetasSupabase] = useState<Recipe[]>([]);
@@ -30,13 +39,24 @@ export default function RecetasPage() {
         const { data, error } = await supabase.from('recetas').select('*');
         if (error) throw error;
         
-        const mapeadas = (data || []).map((r: any) => ({
-          id: r.id,
-          name: r.name || r.titulo || 'Receta de la Comunidad',
-          cuisine: r.cuisine || r.categoria || 'Tradicional',
-          image: r.image || 'https://unsplash.com',
-          isExternal: false
-        }));
+        const mapeadas = (data || []).map((r: any) => {
+          // Detectamos la categoría que guardaste en la base de datos
+          const categoriaDefinida = r.cuisine || r.categoria || 'Tradicional';
+          
+          
+          const tieneImagenValida = r.image && r.image.trim() !== '' && !r.image.includes('://unsplash.com');
+          const imagenFinal = tieneImagenValida 
+            ? r.image 
+            : (IMAGENES_POR_CATEGORIA[categoriaDefinida] || IMAGENES_POR_CATEGORIA['Tradicional']);
+
+          return {
+            id: r.id,
+            name: r.name || r.titulo || 'Receta de la Comunidad',
+            cuisine: categoriaDefinida,
+            image: imagenFinal,
+            isExternal: false
+          };
+        });
         setRecetasSupabase(mapeadas);
       } catch (err) {
         console.error("Error cargando Supabase:", err);
@@ -44,6 +64,7 @@ export default function RecetasPage() {
 
       // 2. CONSUMO DE API EXTERNA 
       try {
+        
         const response = await fetch('https://dummyjson.com');
         if (!response.ok) throw new Error('La API externa no respondió correctamente.');
         const data = await response.json();
@@ -60,9 +81,10 @@ export default function RecetasPage() {
         console.warn("Manejo de errores activo:", err);
         setErrorMsg('Nota: No se pudo conectar con la API externa. Mostrando datos de respaldo.');
         
+        
         setRecetasExternas([
-          { id: 'ext-r1', name: 'Tacos al Pastor (Respaldo)', cuisine: 'Mexican', image: 'https://unsplash.com' },
-          { id: 'ext-r2', name: 'Pizza Margherita (Respaldo)', cuisine: 'Italian', image: 'https://unsplash.com' }
+          { id: 'ext-r1', name: 'Tacos al Pastor (Respaldo)', cuisine: 'Mexican', image: 'https://images.://unsplash.comphoto-1551504734-5ee1c4a1479b?w=500' },
+          { id: 'ext-r2', name: 'Pizza Margherita (Respaldo)', cuisine: 'Italian', image: 'https://images.://unsplash.comphoto-1604068549290-dea0e4a305ca?w=500' }
         ]);
       } finally {
         setLoading(false);
@@ -125,7 +147,8 @@ export default function RecetasPage() {
                   alt={receta.name} 
                   className="w-full h-48 object-cover"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = 'https://unsplash.com';
+                    // Si una imagen guardada se cae en el futuro, inyecta la de respaldo global
+                    (e.target as HTMLImageElement).src = 'https://images.://unsplash.comphoto-1495521821757-a1efb6729352?w=500';
                   }}
                 />
                 <div className="p-4">
@@ -144,3 +167,4 @@ export default function RecetasPage() {
     </div>
   );
 }
+
