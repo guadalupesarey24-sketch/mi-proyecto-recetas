@@ -12,8 +12,6 @@ interface Recipe {
   isExternal?: boolean; // Para diferenciar el origen
 }
 
-export const dynamic = 'force-dynamic';
-
 export default function RecetasPage() {
   const [tab, setTab] = useState<'comunidad' | 'externa'>('comunidad');
   const [recetasSupabase, setRecetasSupabase] = useState<Recipe[]>([]);
