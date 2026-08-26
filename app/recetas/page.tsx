@@ -89,7 +89,7 @@ export default function RecetasPage() {
             tab === 'comunidad' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
-          👥 Recetas de la Comunidad (Supabase)
+           Recetas Usuarios
         </button>
         <button
           onClick={() => setTab('externa')}
@@ -97,7 +97,7 @@ export default function RecetasPage() {
             tab === 'externa' ? 'border-orange-500 text-orange-600' : 'border-transparent text-gray-500 hover:text-gray-700'
           }`}
         >
-           Recetas Globales (API Externa REST)
+           Recetas APiS
         </button>
       </div>
 
