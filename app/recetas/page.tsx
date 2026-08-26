@@ -13,7 +13,7 @@ interface Recipe {
 }
 
 //  1. DICCIONARIO DE IMÁGENES REALES SEGÚN TUS CATEGORÍAS DE SUPABASE
-// 🚀 DICCIONARIO DE AVATARES REALES DE ALTA CALIDAD (Usa enlaces directos de imágenes de Unsplash)
+//  DICCIONARIO DE AVATARES REALES DE ALTA CALIDAD (Usa enlaces directos de imágenes de Unsplash)
 const IMAGENES_POR_CATEGORIA: Record<string, string> = {
   Bebidas: 'https://unsplash.com',
   Postres: 'https://unsplash.com',
@@ -175,4 +175,5 @@ export default function RecetasPage() {
     </div>
   );
 }
+
 
