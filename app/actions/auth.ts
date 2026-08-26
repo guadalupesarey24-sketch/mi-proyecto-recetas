@@ -9,7 +9,7 @@ export async function loginAction(formData: FormData) {
 
   const supabase = await createClientServer();
 
-  // 1. Validar e inyectar la sesión en las cookies de servidor
+  // 1. Validar
   const { error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -19,7 +19,7 @@ export async function loginAction(formData: FormData) {
     return { success: false, error: error.message };
   }
 
-  // 2. Redirección nativa forzada: esto garantiza que las cookies se graben sí o sí
+  // 2. Redirección
   redirect('/dashboard');
 }
 

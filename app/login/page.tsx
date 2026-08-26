@@ -1,6 +1,5 @@
 'use client';
 import { useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { loginAction } from '../actions/auth';
 
 export default function LoginPage() {
@@ -25,8 +24,10 @@ export default function LoginPage() {
         setMsg(`Error: ${result.error}`);
         setLoading(false);
       } else {
-        setMsg('¡Sesión iniciada con éxito!');
-        // Aquí puedes redireccionar si es necesario
+        setMsg('¡Sesión iniciada con éxito! Redirigiendo...');
+        
+        // 🚀 SOLUCIÓN: Forzamos al navegador a viajar al dashboard asentando las cookies en Vercel
+        window.location.href = '/dashboard';
       }
     } catch (error) {
       setMsg('Ocurrió un error inesperado al iniciar sesión.');
@@ -49,7 +50,7 @@ export default function LoginPage() {
           <label className="block text-sm font-semibold text-gray-700 mb-1">Correo Electrónico</label>
           <input 
             type="email" 
-            name="email" // Importante para Server Actions (FormData)
+            name="email" 
             required 
             disabled={loading} 
             value={email} 
@@ -62,7 +63,7 @@ export default function LoginPage() {
           <label className="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
           <input 
             type="password" 
-            name="password" // Importante para Server Actions (FormData)
+            name="password" 
             required 
             disabled={loading} 
             value={password} 
