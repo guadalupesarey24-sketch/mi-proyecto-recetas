@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { loginAction } from '../actions/auth';
+import { supabase } from '@/lib/supabase'; 
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,21 +13,28 @@ export default function LoginPage() {
     if (loading) return;
 
     setLoading(true);
-    setMsg('Validando credenciales en el servidor...');
+    setMsg('Autenticando usuario...');
 
     try {
-      // Usamos Server Actions enviando el FormData directamente desde el formulario
-      const formData = new FormData(e.currentTarget);
-      const result = await loginAction(formData);
+      //  Autenticación directa en el cliente para forzar el guardado inmediato de cookies
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-      if (result && !result.success) {
-        setMsg(`Error: ${result.error}`);
+      if (error) {
+        setMsg(`Error: ${error.message}`);
         setLoading(false);
-      } else {
+      } else if (data?.session) {
         setMsg('¡Sesión iniciada con éxito! Redirigiendo...');
         
-        // 🚀 SOLUCIÓN: Forzamos al navegador a viajar al dashboard asentando las cookies en Vercel
-        window.location.href = '/dashboard';
+        // Damos 300ms para asegurar que el navegador asiente las cookies locales antes del salto
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 300);
+      } else {
+        setMsg('No se pudo establecer la sesión.');
+        setLoading(false);
       }
     } catch (error) {
       setMsg('Ocurrió un error inesperado al iniciar sesión.');
@@ -50,7 +57,6 @@ export default function LoginPage() {
           <label className="block text-sm font-semibold text-gray-700 mb-1">Correo Electrónico</label>
           <input 
             type="email" 
-            name="email" 
             required 
             disabled={loading} 
             value={email} 
@@ -63,7 +69,6 @@ export default function LoginPage() {
           <label className="block text-sm font-semibold text-gray-700 mb-1">Contraseña</label>
           <input 
             type="password" 
-            name="password" 
             required 
             disabled={loading} 
             value={password} 
