@@ -9,19 +9,17 @@ interface Recipe {
   name: string;
   cuisine: string;
   image: string;
-  isExternal?: boolean; // Para diferenciar el origen
+  isExternal?: boolean;
 }
 
-//  1. DICCIONARIO DE IMÁGENES REALES SEGÚN TUS CATEGORÍAS DE SUPABASE
-//  DICCIONARIO DE AVATARES REALES DE ALTA CALIDAD (Usa enlaces directos de imágenes de Unsplash)
+// 🍳 Diccionario de avatares reales mapeados a tus categorías exactas de Supabase
 const IMAGENES_POR_CATEGORIA: Record<string, string> = {
   Bebidas: 'https://unsplash.com',
   Postres: 'https://unsplash.com',
   Entradas: 'https://unsplash.com',
   Almuerzo: 'https://unsplash.com',
-  Tradicional: 'https://unsplash.com' // Imagen global si falla todo
+  Tradicional: 'https://unsplash.com'
 };
-
 
 export default function RecetasPage() {
   const [tab, setTab] = useState<'comunidad' | 'externa'>('comunidad');
@@ -36,28 +34,21 @@ export default function RecetasPage() {
       setLoading(true);
       setErrorMsg('');
       
-      // 1. CARGAR DATOS DE SUPABASE 
-           // 1. CARGAR DATOS DE SUPABASE 
+      // A. CARGAR DATOS DE SUPABASE (Tus columnas reales: titulo y categoria)
       try {
         const { data, error } = await supabase.from('recetas').select('*');
         if (error) throw error;
         
         const mapeadas = (data || []).map((r: any) => {
-          // Extraemos y limpiamos la categoría que guardaste
-          const categoriaDefinida = r.cuisine || r.categoria || 'Tradicional';
+          // Capturamos el nombre exacto de tu columna 'categoria'
+          const categoriaDefinida = r.categoria || 'Tradicional';
           
-          // 🚀 COMPROBACIÓN REFORZADA: 
-          // Si r.image no existe, es un texto vacío "", o es el link viejo de unsplash genérico, se considera INVÁLIDO.
-          const tieneImagenReal = r.image && r.image.trim() !== '' && !r.image.includes('://unsplash.com');
-          
-          // Si no tiene una imagen válida subida por el usuario, le inyectamos a la fuerza el avatar según su categoría
-          const imagenFinal = tieneImagenReal 
-            ? r.image 
-            : (IMAGENES_POR_CATEGORIA[categoriaDefinida] || IMAGENES_POR_CATEGORIA['Tradicional']);
+          // Asignamos el avatar de Unsplash correspondiente de forma forzada
+          const imagenFinal = IMAGENES_POR_CATEGORIA[categoriaDefinida] || IMAGENES_POR_CATEGORIA['Tradicional'];
 
           return {
             id: r.id,
-            name: r.name || r.titulo || 'Receta de la Comunidad',
+            name: r.titulo || 'Receta de la Comunidad', // Mapeamos tu 'titulo' al campo visual 'name'
             cuisine: categoriaDefinida,
             image: imagenFinal,
             isExternal: false
@@ -68,19 +59,18 @@ export default function RecetasPage() {
         console.error("Error cargando Supabase:", err);
       }
 
-
-      // 2. CONSUMO DE API EXTERNA 
+      // B. CONSUMO DE API EXTERNA (TheMealDB para producción)
       try {
-        
-        const response = await fetch('https://dummyjson.com');
+        const response = await fetch('https://themealdb.com');
         if (!response.ok) throw new Error('La API externa no respondió correctamente.');
         const data = await response.json();
         
-        const mapeadasExternas = (data.recipes || []).map((r: any) => ({
-          id: `ext-${r.id}`,
-          name: r.name,
-          cuisine: r.cuisine || 'Internacional',
-          image: r.image,
+        const listadoMeals = data.meals || [];
+        const mapeadasExternas = listadoMeals.slice(0, 9).map((m: any) => ({
+          id: `ext-${m.idMeal}`,
+          name: m.strMeal,
+          cuisine: 'Seafood',
+          image: m.strMealThumb,
           isExternal: true
         }));
         setRecetasExternas(mapeadasExternas);
@@ -88,10 +78,9 @@ export default function RecetasPage() {
         console.warn("Manejo de errores activo:", err);
         setErrorMsg('Nota: No se pudo conectar con la API externa. Mostrando datos de respaldo.');
         
-        
         setRecetasExternas([
-          { id: 'ext-r1', name: 'Tacos al Pastor (Respaldo)', cuisine: 'Mexican', image: 'https://images.://unsplash.comphoto-1551504734-5ee1c4a1479b?w=500' },
-          { id: 'ext-r2', name: 'Pizza Margherita (Respaldo)', cuisine: 'Italian', image: 'https://images.://unsplash.comphoto-1604068549290-dea0e4a305ca?w=500' }
+          { id: 'ext-r1', name: 'Tacos al Pastor (Respaldo)', cuisine: 'Mexican', image: 'https://unsplash.com' },
+          { id: 'ext-r2', name: 'Pizza Margherita (Respaldo)', cuisine: 'Italian', image: 'https://unsplash.com' }
         ]);
       } finally {
         setLoading(false);
@@ -101,7 +90,6 @@ export default function RecetasPage() {
     cargarTodo();
   }, []);
 
-  
   const recetasActuales = tab === 'comunidad' ? recetasSupabase : recetasExternas;
   const recetasFiltradas = recetasActuales.filter((r) =>
     r.name.toLowerCase().includes(filtroTexto.toLowerCase())
@@ -130,12 +118,10 @@ export default function RecetasPage() {
         </button>
       </div>
 
-      {/* Barra de búsqueda interactiva */}
       <div className="mt-6">
         <SearchBar onSearch={(term) => setFiltroTexto(term)} />
       </div>
 
-      {/* Manejo de alertas y errores visuales de la API */}
       {errorMsg && tab === 'externa' && (
         <div className="mt-4 p-3 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded-lg text-sm">
           ⚠️ {errorMsg}
@@ -152,13 +138,11 @@ export default function RecetasPage() {
                 <img 
                   src={receta.image} 
                   alt={receta.name} 
-                  className="w-full h-48 object-cover rounded-t-xl bg-gray-100"
+                  className="w-full h-48 object-cover"
                   onError={(e) => {
-                  // Si por algún motivo la URL resultante llegara a fallar, este salvavidas inyecta una foto gastronómica estable
                     (e.target as HTMLImageElement).src = 'https://unsplash.com';
                   }}
                 />
-
                 <div className="p-4">
                   <span className="text-xs font-semibold px-2 py-1 bg-orange-100 text-orange-600 rounded-full">
                     {receta.cuisine}
@@ -175,5 +159,6 @@ export default function RecetasPage() {
     </div>
   );
 }
+
 
 
