@@ -2,6 +2,14 @@
 
 Plataforma Interactiva de Cocina 
 
+## Capturas de pantalla
+
+| Imagen 1 | Imagen 2 |
+| :---: | :---: |
+| <img src="image.png" width="350"> | <img src="image1.png" width="350"> |
+
+
+
 ## Getting Started
 
 First, run the development server:
