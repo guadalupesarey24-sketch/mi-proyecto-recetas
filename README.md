@@ -2,13 +2,33 @@
 
 Plataforma Interactiva de Cocina 
 
+## Demo en vivo:
+
+https://mi-proyecto-recetas.vercel.app
+
 ## Capturas de pantalla
 
 | Imagen 1 | Imagen 2 |
 | :---: | :---: |
 | <img src="image.png" width="350"> | <img src="image1.png" width="350"> |
 
+## Start Tecnologico
+- Next.js
+- TypeScript
+- Talwind CSS
+- SupaBase
+- Vercel
 
+## Roles de usuarios
+- ROL 1:  LECTOR
+  Buscar recetas - Guardar Favoritos
+
+- ROL 2:  CHEF
+  Publica - Edita y Elimina sus propias recetas
+
+## Credenciales de Prueba
+- ROL1: anitasarango@gmail.com  / clave123
+- ROL2: samyyazan@gmail.com  / clave123
 
 ## Getting Started
 
