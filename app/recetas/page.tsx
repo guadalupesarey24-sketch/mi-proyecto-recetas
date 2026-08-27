@@ -43,8 +43,16 @@ export default function RecetasPage() {
       }
 
       // 2. CONSUMO DE API EXTERNA (Directriz 2.7 con manejo de errores)
+           // 2. CONSUMO DE API EXTERNA (Optimizada para producción en Vercel)
       try {
-        const response = await fetch('https://dummyjson.com');
+        const response = await fetch('https://dummyjson.com', {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        });
+        
         if (!response.ok) throw new Error('La API externa no respondió correctamente.');
         const data = await response.json();
         
@@ -57,14 +65,14 @@ export default function RecetasPage() {
         }));
         setRecetasExternas(mapeadasExternas);
       } catch (err: any) {
-        console.warn("Manejo de errores activo:", err);
+        console.warn("Manejo de errores activo en Vercel:", err);
         setErrorMsg('Nota: No se pudo conectar con la API externa. Mostrando datos de respaldo.');
-        // Datos de respaldo requeridos por la rúbrica si la API falla
         setRecetasExternas([
           { id: 'ext-r1', name: 'Tacos al Pastor (Respaldo)', cuisine: 'Mexican', image: 'https://unsplash.com' },
           { id: 'ext-r2', name: 'Pizza Margherita (Respaldo)', cuisine: 'Italian', image: 'https://unsplash.com' }
         ]);
-      } finally {
+      }
+         finally {
         setLoading(false);
       }
     }
